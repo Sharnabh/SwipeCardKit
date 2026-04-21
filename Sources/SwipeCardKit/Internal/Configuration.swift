@@ -13,6 +13,8 @@ final class Configuration<Item: Identifiable> {
     var triggerThreshold: CGFloat = 150
     var minimumDistance: CGFloat = 20
     var animateOnYAxes: Bool = false
+    var disabledDirections: [CardSwipeDirection] = []
+    var onSwipeDisabled: ((CardSwipeDirection) -> Void)?
     var onSwipeEnd: ((Item, CardSwipeDirection) -> Void)?
     var onThresholdPassed: (() -> Void)?
     var onNoMoreCardsLeft: (() -> Void)?

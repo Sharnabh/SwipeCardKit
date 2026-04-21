@@ -43,7 +43,15 @@ public struct CardSwipeView<Item: Identifiable & Hashable, Content: View>: View 
                 onDragChanged(value)
             }
             .onEnded { value in
-                if abs(value.translation.width) < configuration.triggerThreshold {
+                let direction = CardSwipeDirection(offset: value.translation.width)
+                let thresholdPassed = abs(value.translation.width) >= configuration.triggerThreshold
+                
+                if thresholdPassed && configuration.disabledDirections.contains(direction) {
+                    configuration.onSwipeDisabled?(direction)
+                    withAnimation(.bouncy) {
+                        offset = .zero
+                    }
+                } else if !thresholdPassed {
                     withAnimation(.bouncy) {
                         offset = .zero
                     }
@@ -178,6 +186,11 @@ public struct CardSwipeView<Item: Identifiable & Hashable, Content: View>: View 
 }
 
 public extension CardSwipeView {
+    func swipeDisabled(_ disabled: Bool = true, directions: [CardSwipeDirection] = [.left, .right]) -> CardSwipeView {
+        configuration.disabledDirections = disabled ? directions : []
+        return self
+    }
+    
     func configure(
         threshold: CGFloat,
         minimumDistance: CGFloat,
@@ -201,6 +214,11 @@ public extension CardSwipeView {
     
     func onThresholdPassed(_ newValue: @escaping () -> Void) -> CardSwipeView {
         configuration.onThresholdPassed = newValue
+        return self
+    }
+    
+    func onSwipeDisabled(_ newValue: @escaping (CardSwipeDirection) -> Void) -> CardSwipeView {
+        configuration.onSwipeDisabled = newValue
         return self
     }
 }
