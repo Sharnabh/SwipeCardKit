@@ -186,7 +186,9 @@ public struct CardDetailOverlayView<Item: Identifiable & Hashable, CardContent: 
                 }
             }
             .onPreferenceChange(ChildHorizontalScrollRectPreferenceKey.self) { rects in
-                self.excludedScrollRects = rects
+                if dragOffset == .zero && self.excludedScrollRects != rects {
+                    self.excludedScrollRects = rects
+                }
             }
         }
         .ignoresSafeArea()
@@ -204,12 +206,16 @@ public struct CardDetailOverlayView<Item: Identifiable & Hashable, CardContent: 
         centerY: CGFloat,
         isFullscreen: Bool
     ) -> some View {
+        let lowerBound = max(0, currentIndex - 1)
+        let upperBound = min(items.count - 1, currentIndex + 1)
+        
         ZStack {
-            ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+            ForEach(lowerBound...upperBound, id: \.self) { index in
+                let item = items[index]
                 let indexDistance = index - currentIndex
                 let isCenterCard = index == currentIndex
                 
-                if abs(indexDistance) <= 2 {
+                if abs(indexDistance) <= 1 {
                     let baseOffsetX = CGFloat(indexDistance) * step
                     let currentX = isFullscreen
                         ? (centerX + (CGFloat(indexDistance) * screenSize.width) + dragOffset.width)
@@ -323,18 +329,24 @@ public struct CardDetailOverlayView<Item: Identifiable & Hashable, CardContent: 
             }
         }
         .frame(width: currentWidth, height: currentHeight)
-        .background(Color.white)
+        .background(
+            RoundedRectangle(
+                cornerRadius: currentCornerRadius,
+                style: .continuous
+            )
+            .fill(Color.white)
+            .shadow(
+                color: Color.black.opacity(currentShadowOpacity),
+                radius: currentShadowRadius,
+                x: 0,
+                y: currentShadowY
+            )
+        )
         .clipShape(
             RoundedRectangle(
                 cornerRadius: currentCornerRadius,
                 style: .continuous
             )
-        )
-        .shadow(
-            color: Color.black.opacity(currentShadowOpacity),
-            radius: currentShadowRadius,
-            x: 0,
-            y: currentShadowY
         )
     }
     
